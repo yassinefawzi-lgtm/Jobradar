@@ -81,6 +81,8 @@ Actions persistantes : lue, favori, ignorer avec raison, statut, notes, signaler
 - Pour une offre : choix automatique de la variante (modifiable), puis adaptation du titre, de
   l'accroche (3 lignes), de l'ordre des compétences et de la sélection de 3 à 5 points par expérience.
   Les mots-clés de l'annonce ne sont repris que s'ils correspondent à un fait validé.
+- Une compétence marquée `usage: liste_seulement` peut apparaître dans la liste de compétences et
+  compter dans le scoring, mais n'est jamais attribuée à une expérience ni présentée comme une réalisation.
 - La prospection B2B n'est mise en avant que pour les postes où elle est pertinente ; pour les
   familles B, C, D, E, mettre en avant outils métiers, automatisation, analyse de besoins (Fiber
   Academy/ENEDIS) et gestion de projet.
