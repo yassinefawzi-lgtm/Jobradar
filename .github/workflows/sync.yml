@@ -29,7 +29,12 @@ jobs:
         id: gate
         env:
           SCHEDULE: ${{ github.event.schedule }}
+          HAS_DB: ${{ secrets.DATABASE_URL != '' }}
         run: |
+          if [ "$HAS_DB" != "true" ]; then
+            echo "::notice::Secret DATABASE_URL absent : synchro non configurée, passage ignoré (voir README, Mise en service)."
+            echo "run=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
           if [ "${{ github.event_name }}" != "schedule" ]; then echo "run=true" >> "$GITHUB_OUTPUT"; exit 0; fi
           OFFSET=$(TZ=Europe/Paris date +%z)
           if { [ "$OFFSET" = "+0200" ] && [ "$SCHEDULE" = "30 5 * * *" ]; } || { [ "$OFFSET" = "+0100" ] && [ "$SCHEDULE" = "30 6 * * *" ]; }; then
