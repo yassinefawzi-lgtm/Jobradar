@@ -120,3 +120,10 @@ export async function saveProfile(_prev: { errors?: string[]; ok?: boolean } | u
   revalidatePath("/profil");
   return { ok: true };
 }
+
+export async function triggerSync() {
+  await requireSession();
+  const { dispatchSync } = await import("@/lib/sync/dispatch");
+  const r = await dispatchSync();
+  redirect(`/diagnostic?lancement=${r.ok ? "ok" : `echec-${r.status}`}`);
+}

@@ -4,11 +4,14 @@ import { db } from "@/lib/db/client";
 import { dashboard, syncHistory } from "@/lib/db/jobs";
 import { dateTime, SOURCE_LABELS } from "@/lib/format";
 import { defaultConnectors } from "@/lib/sync/run";
+import { dispatchConfigured } from "@/lib/sync/dispatch";
+import { triggerSync } from "@/app/actions";
 
 export const metadata: Metadata = { title: "Synchronisation" };
 export const dynamic = "force-dynamic";
 
-export default async function DiagnosticPage() {
+export default async function DiagnosticPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+  const { lancement } = await searchParams;
   const sql = db();
   const [{ sources }, runs] = await Promise.all([dashboard(sql), syncHistory(sql)]);
   const connectors = defaultConnectors();
@@ -39,9 +42,18 @@ export default async function DiagnosticPage() {
             </div>
           );
         })}
-        <p className="text-sm text-muted">
-          Synchronisation manuelle : <code>pnpm sync</code>. La planification quotidienne (7 h 30) arrive en phase 4.
-        </p>
+        <div className="card space-y-2 p-4 text-sm">
+          <p>Collecte automatique tous les jours vers 7 h 30 (heure de Paris), par GitHub Actions.</p>
+          {lancement === "ok" && <p className="text-good">Synchro lancée. Résultat dans quelques minutes dans l&apos;historique ci-dessous.</p>}
+          {lancement?.startsWith("echec") && <p className="text-bad">Lancement refusé par GitHub ({lancement}). Vérifie GITHUB_DISPATCH_TOKEN.</p>}
+          {dispatchConfigured() ? (
+            <form action={triggerSync}>
+              <button className="btn btn-primary">Lancer une synchro maintenant</button>
+            </form>
+          ) : (
+            <p className="text-muted">Lancement manuel depuis l&apos;application : non configuré (GITHUB_DISPATCH_TOKEN). Possible depuis GitHub → Actions → Synchro → Run workflow.</p>
+          )}
+        </div>
       </section>
 
       <section className="space-y-2">

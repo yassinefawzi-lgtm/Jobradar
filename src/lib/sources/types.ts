@@ -24,6 +24,11 @@ export interface ConnectorResult {
   /** Identifiants vus dans les résultats (y compris déjà connus) : sert au suivi de disponibilité. */
   seenIds: string[];
   warnings: string[];
+  /**
+   * Appelé après l'enregistrement, avec les offres dont l'enregistrement a échoué (clés "source:id").
+   * Sert aux e-mails : corbeille seulement pour les e-mails entièrement enregistrés.
+   */
+  commit?: (failed: Set<string>) => Promise<number>;
 }
 
 export interface Connector {

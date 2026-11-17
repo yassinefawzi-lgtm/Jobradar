@@ -10,6 +10,9 @@ import { normalizeJob } from "../src/lib/normalize/job";
 import { DEFAULT_PREFERENCES } from "../src/lib/scoring/preferences";
 import { scoreJob } from "../src/lib/scoring/score";
 import type { RawJob } from "../src/lib/types";
+import type { Connector } from "../src/lib/sources/types";
+import { runSync } from "../src/lib/sync/run";
+import { sendDigest } from "../src/lib/notify/digest";
 
 /**
  * Tests d'intégration sur une vraie base PostgreSQL.
@@ -203,5 +206,48 @@ describe("candidatures (phase 2)", { skip: !url && "TEST_DATABASE_URL non défin
     await followUp(sql, jobId, "relance_faite", new Date("2026-11-25T00:00:00Z"));
     assert.equal((await getJob(sql, jobId))!.status, "relance_prevue");
     assert.ok((await board(sql)).some((b) => b.job_id === jobId));
+  });
+});
+
+describe("synchro e-mail et résumé (phase 4)", { skip: !url && "TEST_DATABASE_URL non défini" }, () => {
+  let sql: postgres.Sql;
+  before(async () => {
+    sql = postgres(url!, { onnotice: () => {}, max: 2 });
+    for (const f of (await readdir("supabase/migrations")).sort()) await sql.unsafe(await readFile(`supabase/migrations/${f}`, "utf8"));
+  });
+  after(async () => sql?.end());
+
+  it("runSync : offres des e-mails enregistrées puis e-mails mis à la corbeille", async () => {
+    const trashed: number[] = [];
+    const connector: Connector = {
+      id: "email",
+      label: "E-mails (test)",
+      unavailableReason: () => null,
+      fetch: async () => ({
+        jobs: [raw({ source: "indeed", sourceJobId: "mail-test-1", url: "https://engage.indeed.com/f/a/FIXTURE", title: "Chargé de marketing digital", company: "Mail fictive" })],
+        seenIds: [],
+        warnings: [],
+        commit: async (failed) => {
+          if (!failed.size) trashed.push(42);
+          return failed.size ? 0 : 1;
+        },
+      }),
+    };
+    const report = await runSync(sql, { connectors: [connector], log: () => {}, fetchImpl: (async () => new Response("{}")) as unknown as typeof fetch });
+    assert.equal(report.sources[0].created, 1);
+    assert.equal(report.sources[0].trashed, 1);
+    assert.deepEqual(trashed, [42]);
+  });
+
+  it("résumé : envoyé une seule fois par offre", async () => {
+    await sql`update jobs set score = 90, status = 'nouvelle', notified_at = null where company = 'Mail fictive'`;
+    const sent: string[] = [];
+    const sender = { send: async (m: { subject: string }) => void sent.push(m.subject) };
+    const first = await sendDigest(sql, { sender, to: "moi@example.fr", minScore: 85 });
+    assert.ok(first.sent >= 1);
+    const second = await sendDigest(sql, { sender, to: "moi@example.fr", minScore: 85 });
+    assert.equal(second.sent, 0);
+    assert.equal(sent.length, 1);
+    assert.equal((await sendDigest(sql, { sender: null, to: "x" })).reason, "notification non configurée");
   });
 });

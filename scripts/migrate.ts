@@ -7,6 +7,8 @@ const dir = path.join(process.cwd(), "supabase", "migrations");
 
 async function main() {
   const sql = db();
+  const [{ enc }] = await sql<{ enc: string }[]>`select pg_encoding_to_char(encoding) as enc from pg_database where datname = current_database()`;
+  if (enc !== "UTF8") throw new Error(`la base doit être en UTF-8 (actuellement ${enc}) : textes accentués corrompus sinon`);
   await sql`create table if not exists schema_migrations (version text primary key, applied_at timestamptz not null default now())`;
   await sql`alter table schema_migrations enable row level security`;
   const done = new Set((await sql<{ version: string }[]>`select version from schema_migrations`).map((r) => r.version));

@@ -1,0 +1,75 @@
+name: Synchro
+
+# Collecte quotidienne vers 7 h 30, heure de Paris. Le cron GitHub est en UTC :
+# deux déclenchements (5 h 30 et 6 h 30 UTC) et une garde qui ne garde que celui
+# qui correspond à 7 h 30 à Paris selon l'heure d'été ou d'hiver.
+on:
+  schedule:
+    - cron: "30 5 * * *" # heure d'été (UTC+2)
+    - cron: "30 6 * * *" # heure d'hiver (UTC+1)
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "Fenêtre de recherche en jours (vide = automatique)"
+        required: false
+
+concurrency:
+  group: synchro
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Garde heure de Paris
+        id: gate
+        env:
+          SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          if [ "${{ github.event_name }}" != "schedule" ]; then echo "run=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          OFFSET=$(TZ=Europe/Paris date +%z)
+          if { [ "$OFFSET" = "+0200" ] && [ "$SCHEDULE" = "30 5 * * *" ]; } || { [ "$OFFSET" = "+0100" ] && [ "$SCHEDULE" = "30 6 * * *" ]; }; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Déclenchement ignoré (décalage Paris $OFFSET, cron $SCHEDULE)"
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.gate.outputs.run == 'true'
+        uses: actions/checkout@v4
+      - if: steps.gate.outputs.run == 'true'
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - if: steps.gate.outputs.run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - if: steps.gate.outputs.run == 'true'
+        run: pnpm install --frozen-lockfile
+      - if: steps.gate.outputs.run == 'true'
+        name: Migrations
+        run: pnpm db:migrate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - if: steps.gate.outputs.run == 'true'
+        name: Collecte, scores et résumé
+        run: |
+          ARGS="--trigger ${{ github.event_name == 'schedule' && 'planifie' || 'manuel' }} --notify"
+          if [ -n "${{ github.event.inputs.days }}" ]; then ARGS="$ARGS --days ${{ github.event.inputs.days }}"; fi
+          pnpm sync $ARGS
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
+          ADZUNA_APP_KEY: ${{ secrets.ADZUNA_APP_KEY }}
+          FRANCE_TRAVAIL_CLIENT_ID: ${{ secrets.FRANCE_TRAVAIL_CLIENT_ID }}
+          FRANCE_TRAVAIL_CLIENT_SECRET: ${{ secrets.FRANCE_TRAVAIL_CLIENT_SECRET }}
+          APP_URL: ${{ vars.APP_URL }}
+          NOTIFY_TO: ${{ vars.NOTIFY_TO }}
+          NOTIFY_MIN_SCORE: ${{ vars.NOTIFY_MIN_SCORE }}

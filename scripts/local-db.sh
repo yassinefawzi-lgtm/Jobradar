@@ -9,7 +9,7 @@ RUN_AS=()
 if [ "$(id -u)" = "0" ]; then RUN_AS=(runuser -u postgres --); fi
 if [ ! -d "$DATA" ]; then
   mkdir -p "$DATA"; [ "$(id -u)" = "0" ] && chown postgres "$DATA"
-  "${RUN_AS[@]}" "$BIN/initdb" -D "$DATA" -U jobradar --auth=trust >/dev/null
+  "${RUN_AS[@]}" "$BIN/initdb" -D "$DATA" -U jobradar --auth=trust --encoding=UTF8 --locale=C.UTF-8 >/dev/null
 fi
 if ! "${RUN_AS[@]}" "$BIN/pg_ctl" -D "$DATA" status >/dev/null 2>&1; then
   "${RUN_AS[@]}" "$BIN/pg_ctl" -D "$DATA" -o "-p $PORT -k /tmp" -l "$DATA/server.log" start >/dev/null

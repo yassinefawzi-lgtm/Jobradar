@@ -18,6 +18,7 @@ import { isExcludedTitle, scoreJob } from "../scoring/score";
 import { adzunaConnector } from "../sources/adzuna";
 import { franceTravailConnector } from "../sources/francetravail";
 import { helloworkConnector } from "../sources/hellowork";
+import { emailConnector } from "../sources/email/connector";
 import { PoliteHttp, SourceBlockedError } from "../sources/http";
 import { type Connector, defaultQueries } from "../sources/types";
 import { rescoreAll } from "./rescore";
@@ -40,6 +41,8 @@ export interface SourceReport {
   created: number;
   updated: number;
   merged: number;
+  /** E-mails mis à la corbeille après enregistrement (connecteur e-mail). */
+  trashed?: number;
   warnings: string[];
 }
 
@@ -51,7 +54,7 @@ export interface SyncReport {
 }
 
 export function defaultConnectors(): Connector[] {
-  return [helloworkConnector(), franceTravailConnector(), adzunaConnector()];
+  return [helloworkConnector(), emailConnector(), franceTravailConnector(), adzunaConnector()];
 }
 
 export async function runSync(sql: postgres.Sql, opts: SyncOptions = {}): Promise<SyncReport> {
@@ -82,13 +85,15 @@ export async function runSync(sql: postgres.Sql, opts: SyncOptions = {}): Promis
       delayMs: Number(process.env.SYNC_REQUEST_DELAY_MS ?? 1500),
       maxRequests: Number(process.env.SYNC_MAX_REQUESTS_PER_SOURCE ?? 150),
     });
+    let result: Awaited<ReturnType<Connector["fetch"]>> | null = null;
     try {
       const known = await knownSourceIds(sql, connector.id);
-      const result = await connector.fetch({ http, queries, maxAgeDays, knownIds: known, log, skipDetail: isExcludedTitle });
+      result = await connector.fetch({ http, queries, maxAgeDays, knownIds: known, log, skipDetail: isExcludedTitle });
       report.fetched = result.jobs.length;
       report.warnings.push(...result.warnings);
       await markSeen(sql, connector.id, result.seenIds);
       const index = await loadDedupeIndex(sql);
+      const failed = new Set<string>();
       for (const raw of result.jobs) {
         try {
           let job = normalizeJob(raw, zoneSettings);
@@ -109,9 +114,11 @@ export async function runSync(sql: postgres.Sql, opts: SyncOptions = {}): Promis
           else report.updated++;
         } catch (err) {
           // Une offre mal formée ne bloque jamais les autres.
+          failed.add(`${raw.source}:${raw.sourceJobId}`);
           report.warnings.push(`${raw.source}/${raw.sourceJobId} ignorée : ${err instanceof Error ? err.message : String(err)}`);
         }
       }
+      if (result.commit) report.trashed = await result.commit(failed);
       if (report.warnings.length) report.status = "partiel";
       await recordSourceStatus(sql, connector.id, { ok: true, count: result.seenIds.length });
       log(`- ${connector.label} : ${report.fetched} offres détaillées, ${report.created} nouvelles, ${report.merged} fusionnées, ${report.updated} mises à jour (${http.count} requêtes)`);
@@ -119,6 +126,8 @@ export async function runSync(sql: postgres.Sql, opts: SyncOptions = {}): Promis
     } catch (err) {
       report.status = "erreur";
       report.message = err instanceof SourceBlockedError ? `${err.message} — collecte arrêtée, aucun contournement` : err instanceof Error ? err.message : String(err);
+      // Erreur après lecture : on libère la source sans rien mettre à la corbeille.
+      if (result?.commit) await result.commit(new Set(result.jobs.map((j) => `${j.source}:${j.sourceJobId}`))).catch(() => 0);
       await recordSourceStatus(sql, connector.id, { ok: false, error: report.message });
       log(`- ${connector.label} : ERREUR ${report.message}`);
     }

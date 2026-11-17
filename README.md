@@ -7,7 +7,7 @@ Application personnelle de recherche d'emploi : collecte quotidienne d'offres r�
 - Sources et autorisations : [docs/SOURCES.md](docs/SOURCES.md)
 - Profil (source de vérité pour CV et lettres, phase 2) : [profile/facts.yaml](profile/facts.yaml)
 
-## État : phases 1 et 2 terminées
+## État : phases 1, 2 et 4 terminées (côté code)
 
 | Fonction | État |
 |---|---|
@@ -21,7 +21,9 @@ Application personnelle de recherche d'emploi : collecte quotidienne d'offres r�
 | « J'ai postulé » : copie figée + relance à J+7, tableau des candidatures, relances sur l'accueil | Fonctionne, testé |
 | Profil modifiable dans l'application (validé avant enregistrement) | Fonctionne, testé |
 | Rédaction par l'IA (Claude) | Code prêt, testé sur réponses simulées ; **pas encore testé en réel** (clé à fournir) |
-| Synchro quotidienne automatique, alertes e-mail, autres sources | Phase 4 |
+| Synchro quotidienne à 7 h 30 (GitHub Actions, heure d'été/hiver gérée), lancement manuel | Code prêt ; **à activer** avec les secrets GitHub (voir « Mise en service ») |
+| E-mails d'alerte (Indeed, LinkedIn, WTTJ, France Travail, Apec, HelloWork) : lecture puis corbeille | Lecteur Indeed testé sur un vrai e-mail ; connexion Gmail **non testée en réel** (mot de passe d'application à fournir) |
+| Résumé quotidien par e-mail (offres ≥ 85, jamais deux fois) et alerte en cas d'échec | Testé avec un envoi simulé ; envoi réel non testé |
 | Spontanées, Stats | Phases 3 et 5 |
 
 ### Pack candidature : comment ça marche
@@ -50,11 +52,28 @@ pnpm dev                          # http://localhost:3200
 
 `SESSION_SECRET` : 32 caractères aléatoires minimum, par exemple `openssl rand -hex 32`.
 
+## Mise en service de la collecte automatique (phase 4)
+
+1. **Gmail** (pour lire les alertes et envoyer le résumé) : active la validation en deux étapes de ton compte Google,
+   puis crée un **mot de passe d'application** (Compte Google → Sécurité → Mots de passe des applications).
+2. **GitHub** → dépôt → Settings → Secrets and variables → Actions :
+   - *Secrets* : `DATABASE_URL` (Supabase, Transaction pooler), `GMAIL_USER`, `GMAIL_APP_PASSWORD`,
+     et si tu les as : `ADZUNA_APP_ID`, `ADZUNA_APP_KEY`, `FRANCE_TRAVAIL_CLIENT_ID`, `FRANCE_TRAVAIL_CLIENT_SECRET`.
+   - *Variables* (facultatives) : `APP_URL` (adresse Vercel, pour les liens du résumé), `NOTIFY_TO`, `NOTIFY_MIN_SCORE` (85 par défaut).
+3. GitHub → Actions → **Synchro** → *Run workflow* pour un premier passage (rattrapage de 30 jours sur une base vide).
+4. Ensuite, tout est automatique chaque matin. En cas d'échec, GitHub t'envoie un e-mail, et JobRadar aussi si Gmail est configuré.
+5. Facultatif, bouton « Lancer une synchro » dans l'appli : dans Vercel, `GITHUB_DISPATCH_TOKEN` (jeton GitHub à grain fin,
+   ce dépôt seulement, permission *Actions : lecture et écriture*) et `GITHUB_REPOSITORY` (`yassinefawzi-lgtm/jobradar`).
+
+Les e-mails d'alerte ne sont mis à la corbeille qu'après l'enregistrement réussi de toutes leurs offres ;
+un e-mail non reconnu reste dans la boîte et est signalé dans la page Synchro. Seuls les expéditeurs listés dans
+`src/lib/sources/email/parsers.ts` sont lus.
+
 ## Commandes
 
 | Commande | Rôle |
 |---|---|
-| `pnpm sync` | Collecte toutes les sources configurées. Options : `--only hellowork`, `--days 30`, `--trigger planifie` |
+| `pnpm sync` | Collecte toutes les sources configurées. Options : `--only hellowork,email`, `--days 30`, `--trigger planifie`, `--notify` (résumé et alerte d'échec) |
 | `pnpm rescore` | Recalcule salaires normalisés et scores de toutes les offres (après un changement de règles) |
 | `pnpm db:migrate` | Applique les migrations SQL de `supabase/migrations` |
 | `pnpm test` | Tests unitaires ; avec `TEST_DATABASE_URL` (base dédiée, **vidée**), tests d'intégration en plus |
