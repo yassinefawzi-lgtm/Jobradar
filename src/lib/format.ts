@@ -75,6 +75,11 @@ export function scoreTone(score: number | null): "good" | "warn" | "muted" {
   return "muted";
 }
 
+/** Vrai si l'échéance est atteinte. */
+export function isDue(d: Date | string): boolean {
+  return new Date(d).getTime() <= Date.now();
+}
+
 /** Vrai si la date est dans les dernières 24 heures. */
 export function isRecent(d: Date | string, hours = 24): boolean {
   return Date.now() - new Date(d).getTime() < hours * 3_600_000;

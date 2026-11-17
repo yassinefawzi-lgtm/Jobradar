@@ -30,7 +30,7 @@ export const OWNED_SKILLS: SkillDef[] = [
   { label: "Emailing", patterns: [/\bemailing\b/, /\be mailing\b/, /\bnewsletters?\b/, /\bcampagnes? (e ?mail|email)\b/], factId: "comp.prospection" },
   { label: "Analyse de besoins", patterns: [/\banalyse (des|de) besoins?\b/, /\brecueil (des )?besoins\b/, /\bexpression (des|de) besoins?\b/, /\bcahier des charges\b/, /\bspecifications? fonctionnelles?\b/], factId: "comp.analyse-besoins" },
   { label: "Gestion de projet", patterns: [/\bgestion de projets?\b/, /\bpilotage (de )?projets?\b/, /\bcoordination\b/, /\bplanning\b/, /\bretroplanning\b/], factId: "comp.analyse-besoins" },
-  { label: "Anglais", patterns: [/\banglais\b/, /\benglish\b/] },
+  { label: "Anglais", patterns: [/\banglais\b/, /\benglish\b/], factId: "langue.anglais" },
 ];
 
 /** Compétences fréquemment demandées que le profil ne revendique pas (affichées comme "manquantes"). */

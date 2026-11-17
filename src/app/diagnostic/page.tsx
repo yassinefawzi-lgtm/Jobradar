@@ -14,7 +14,7 @@ export default async function DiagnosticPage() {
   const connectors = defaultConnectors();
 
   return (
-    <main className="space-y-6">
+    <main className="mx-auto max-w-3xl space-y-6">
       <h1 className="text-2xl font-semibold">Synchronisation</h1>
 
       <section className="space-y-2">

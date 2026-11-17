@@ -1,13 +1,19 @@
+# Source de vérité du profil : le CV et la lettre n'utilisent QUE ces faits (statut: valide).
+# - texte  : formulation factuelle (CV)
+# - lettre : même fait rédigé à la première personne (lettres), sans information supplémentaire
+# - familles : familles de métiers où le fait est le plus pertinent (A à F, voir docs/SPEC.md §2)
+
 identite:
   nom: Yassine Fawzi
   titre_cv: Chargé de marketing digital
   localisation: Rouen (installation prochaine)
   mobilite: Permis B, véhiculé
   email_candidature: contact@yassinefawzi.fr
+  telephone: 06 27 35 38 84
   site: yassinefawzi.fr
   linkedin: linkedin.com/in/yassine-fawzi
   langues:
-    - { langue: anglais, niveau: très bon niveau, statut: valide }
+    - { langue: Anglais, niveau: très bon niveau, statut: valide }
 
 formation:
   - id: form.rocket
@@ -15,7 +21,7 @@ formation:
     ecole: Rocket School, Lyon
     periode: 2022-2024
     detail: Parcours Bachelor Marketing digital & Growth Hacking, bootcamp puis alternance
-    niveau: Bac+3          # a_confirmer : niveau RNCP exact du titre
+    niveau: Bac+3
     statut: valide
   - id: form.dut
     intitule: DUT Mesures physiques
@@ -28,49 +34,97 @@ experiences:
     poste: Consultant marketing digital (freelance)
     clients: entrepreneurs, avocats, restaurants, petites entreprises
     periode: 2023-aujourd'hui
+    statut: valide
     realisations:
       - id: real.gads-avocat
-        texte: Google Ads pour un avocat pénaliste — lancement de campagnes locales (budget 400 à 500 €/mois), exclusion des recherches hors spécialité et hors zone ; les campagnes tournent aujourd'hui seules.
+        texte: "Google Ads pour un avocat pénaliste : lancement de campagnes locales (budget de 400 à 500 € par mois), exclusion des recherches hors spécialité et hors zone ; les campagnes tournent aujourd'hui seules."
+        lettre: "Pour un avocat pénaliste, j'ai lancé des campagnes Google Ads locales (budget de 400 à 500 € par mois) et exclu les recherches hors spécialité et hors zone ; elles tournent aujourd'hui seules."
+        familles: [A]
         statut: valide
       - id: real.meta-ads
-        texte: Meta Ads (Instagram, Facebook) pour des restaurants et une école de réflexologie — configuration, diffusion, optimisation ; 4 inscriptions obtenues pour l'école.
+        texte: "Meta Ads (Instagram, Facebook) pour des restaurants et une école de réflexologie : configuration, diffusion, optimisation ; 4 inscriptions obtenues pour l'école."
+        lettre: "J'ai configuré, diffusé et optimisé des campagnes Meta Ads (Instagram, Facebook) pour des restaurants et une école de réflexologie, qui y a obtenu 4 inscriptions."
+        familles: [A]
         statut: valide
       - id: real.outil-restructuring
-        texte: Outil métier pour un avocat en restructuring — interface de saisie, API Pappers et modèles de documents pour générer les offres de reprise ; une offre prenait une dizaine d'heures, environ deux fois moins aujourd'hui ; toujours utilisé.
+        texte: "Outil métier pour un avocat en restructuring : interface de saisie, API Pappers et modèles de documents pour générer les offres de reprise ; une offre prenait une dizaine d'heures, environ deux fois moins aujourd'hui ; toujours utilisé."
+        lettre: "Pour un avocat en restructuring, j'ai conçu un outil métier (interface de saisie, API Pappers, modèles de documents) qui génère les offres de reprise : une offre demandait une dizaine d'heures, elle en prend environ deux fois moins, et l'outil est toujours utilisé."
+        familles: [B, C, D, F]
         statut: valide
       - id: real.wedding-app
-        texte: Web app pour une wedding planner — informations centralisées, suivi des tâches, relances des invités et prestataires.
+        texte: "Web app pour une wedding planner : informations centralisées, suivi des tâches, relances des invités et des prestataires."
+        lettre: "J'ai construit pour une wedding planner une web app qui centralise les informations, suit les tâches et gère les relances des invités et des prestataires."
+        familles: [B, C, F]
         statut: valide
   - id: exp.grapp
     poste: Growth Hacker en alternance
     entreprise: GR.APP&CO, Saint-Étienne
     periode: 2022-2023
+    statut: valide
     realisations:
-      - { id: real.base-10k, texte: "Constitution et enrichissement par scraping d'une base de 10 000 contacts professionnels.", statut: valide }
-      - { id: real.grapp-ads, texte: "Mise en place et optimisation de campagnes Google Ads et Meta Ads.", statut: valide }
-      - { id: real.prospection-cse, texte: "Prospection LinkedIn et e-mail auprès des comités sociaux et économiques (CSE).", statut: valide }
-      - { id: real.seo-7, texte: "Rédaction et mise en page de 7 articles SEO.", statut: valide }
+      - id: real.base-10k
+        texte: "Constitution et enrichissement par scraping d'une base de 10 000 contacts professionnels."
+        lettre: "Chez GR.APP&CO, j'ai constitué et enrichi par scraping une base de 10 000 contacts professionnels."
+        familles: [A, B, E]
+        statut: valide
+      - id: real.grapp-ads
+        texte: "Mise en place et optimisation de campagnes Google Ads et Meta Ads."
+        lettre: "Chez GR.APP&CO, j'ai mis en place et optimisé des campagnes Google Ads et Meta Ads."
+        familles: [A]
+        statut: valide
+      - id: real.prospection-cse
+        texte: "Prospection LinkedIn et e-mail auprès des comités sociaux et économiques (CSE)."
+        lettre: "J'ai mené de la prospection LinkedIn et e-mail auprès des comités sociaux et économiques (CSE)."
+        familles: [A]
+        statut: valide
+      - id: real.seo-7
+        texte: "Rédaction et mise en page de 7 articles SEO."
+        lettre: "J'ai rédigé et mis en page 7 articles SEO."
+        familles: [A]
+        statut: valide
   - id: exp.fiber
     poste: Chargé d'études
     entreprise: Fiber Academy, Colombelles
     periode: 2018-2020
+    statut: valide
     realisations:
-      - { id: real.enedis, texte: "Analyse des besoins d'ENEDIS, études de faisabilité présentées aux décideurs.", statut: valide }
-      - { id: real.alternants, texte: "Gestion de projet, recrutement et formation d'alternants.", statut: valide }
+      - id: real.enedis
+        texte: "Analyse des besoins d'ENEDIS, études de faisabilité présentées aux décideurs."
+        lettre: "Chez Fiber Academy, j'ai analysé les besoins d'ENEDIS et présenté des études de faisabilité aux décideurs."
+        familles: [C, D, E]
+        statut: valide
+      - id: real.alternants
+        texte: "Gestion de projet, recrutement et formation d'alternants."
+        lettre: "J'y ai aussi géré des projets, recruté et formé des alternants."
+        familles: [C, D, E]
+        statut: valide
   - id: exp.interim
     poste: Missions en intérim et en périscolaire
     periode: 2020-2022
     statut: valide
+    realisations: []
 
 projets_personnels:
-  - { id: proj.veille-emploi, texte: "Outil personnel de veille d'offres d'emploi (recherches, fusion des doublons, classement selon mes critères avec justification) — test réel autour de Rouen en octobre 2026 : 6 offres retenues sur 49.", statut: valide }
-  - { id: proj.loyer, texte: "« Rends-moi mon loyer » : simulateur en ligne de l'encadrement des loyers (données publiques, Géoplateforme IGN, Next.js), avec courrier pré-rempli.", statut: valide }
-  - { id: proj.site, texte: "yassinefawzi.fr : site personnel en Next.js hébergé sur Cloudflare ; contenus et structure par moi, code écrit avec l'aide d'une IA.", statut: valide }
+  - id: proj.veille-emploi
+    texte: "Outil personnel de veille d'offres d'emploi (recherches, fusion des doublons, classement selon mes critères avec justification) ; test réel autour de Rouen en octobre 2026 : 6 offres retenues sur 49."
+    lettre: "J'ai construit mon propre outil de veille d'offres d'emploi, qui fusionne les doublons et classe les offres selon des critères explicites."
+    familles: [B, C, E, F]
+    statut: valide
+  - id: proj.loyer
+    texte: "« Rends-moi mon loyer » : simulateur en ligne de l'encadrement des loyers (données publiques, Géoplateforme IGN, Next.js), avec courrier pré-rempli."
+    lettre: "J'ai réalisé « Rends-moi mon loyer », un simulateur en ligne de l'encadrement des loyers construit sur des données publiques."
+    familles: [C, E]
+    statut: valide
+  - id: proj.site
+    texte: "yassinefawzi.fr : site personnel en Next.js hébergé sur Cloudflare ; contenus et structure par moi, code écrit avec l'aide d'une IA."
+    lettre: "J'ai conçu mon site yassinefawzi.fr (contenus et structure), dont le code a été écrit avec l'aide d'une IA."
+    familles: [A]
+    statut: valide
 
 competences:
   - { id: comp.ads, nom: "Acquisition payante", outils: [Google Ads, Meta Ads], preuves: [real.gads-avocat, real.meta-ads, real.grapp-ads], statut: valide }
   - { id: comp.prospection, nom: "Prospection B2B", outils: [LinkedIn Sales Navigator, Lemlist, Waalaxy, LaGrowthMachine, cold emailing], preuves: [real.prospection-cse], statut: valide }
-  - { id: comp.data, nom: "Scraping et enrichissement", outils: [PhantomBuster, Octoparse, Lusha, Dropcontact], preuves: [real.base-10k], statut: valide }
+  - { id: comp.data, nom: "Scraping et enrichissement de données", outils: [PhantomBuster, Octoparse, Lusha, Dropcontact], preuves: [real.base-10k], statut: valide }
   - { id: comp.seo, nom: "SEO et contenu", outils: [rédaction SEO, copywriting, landing pages, WordPress, Webflow], preuves: [real.seo-7], statut: valide }
   - { id: comp.automatisation, nom: "Automatisation", outils: [Make, Zapier, Google Sheets, API Pappers, IA générative, web apps sur mesure], preuves: [real.outil-restructuring, real.wedding-app], statut: valide }
   - { id: comp.analyse-besoins, nom: "Analyse de besoins et gestion de projet", preuves: [real.enedis, real.alternants, real.outil-restructuring], statut: valide }

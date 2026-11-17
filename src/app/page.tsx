@@ -3,17 +3,19 @@ import { TriageCard } from "@/components/triage";
 import { EmptyState, JobCard } from "@/components/ui";
 import { db } from "@/lib/db/client";
 import { dashboard } from "@/lib/db/jobs";
+import { dueFollowUps } from "@/lib/apply/service";
+import { followUpAction } from "@/app/actions";
 import { dateShort, dateTime, relativeDays, SOURCE_LABELS } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
 export default async function TodayPage() {
-  const d = await dashboard(db());
+  const [d, due] = await Promise.all([dashboard(db()), dueFollowUps(db())]);
   const okSources = d.sources.filter((s) => s.last_success_at && (!s.last_error_at || s.last_success_at > s.last_error_at));
   const errSources = d.sources.filter((s) => s.last_error_at && (!s.last_success_at || s.last_error_at >= s.last_success_at));
 
   return (
-    <main className="space-y-8">
+    <main className="mx-auto max-w-3xl space-y-8">
       <header>
         <p className="text-sm text-muted">{dateShort(new Date())}</p>
         <h1 className="text-2xl font-semibold">Aujourd&apos;hui</h1>
@@ -37,6 +39,31 @@ export default async function TodayPage() {
           </EmptyState>
         )}
       </section>
+
+      {due.length > 0 && (
+        <section aria-labelledby="relances-titre" className="space-y-2">
+          <h2 id="relances-titre" className="text-lg font-semibold">
+            Relances à faire ({due.length})
+          </h2>
+          {due.map((r) => (
+            <div key={r.job_id} className="card flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
+              <Link href={`/offres/${r.job_id}/candidature`} className="font-medium hover:underline">
+                {r.title} — {r.company ?? "entreprise non précisée"}
+              </Link>
+              <form action={followUpAction} className="flex gap-2">
+                <input type="hidden" name="id" value={r.job_id} />
+                <input type="hidden" name="redirect" value="/" />
+                <button name="followup" value="relance_faite" className="btn">
+                  Relance faite
+                </button>
+                <button name="followup" value="clore" className="btn">
+                  Plus de relance
+                </button>
+              </form>
+            </div>
+          ))}
+        </section>
+      )}
 
       {d.urgent.length > 0 && (
         <section aria-labelledby="urgent-titre" className="space-y-3">

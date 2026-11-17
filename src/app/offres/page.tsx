@@ -16,7 +16,7 @@ export default async function OffersPage({ searchParams }: { searchParams: Promi
   const exportQuery = new URLSearchParams(Object.entries(f).map(([k, v]) => [k, String(v)])).toString();
 
   return (
-    <main className="space-y-4">
+    <main className="mx-auto max-w-3xl space-y-4">
       <div className="flex items-baseline justify-between gap-3">
         <h1 className="text-2xl font-semibold">Offres</h1>
         <a href={`/api/export${exportQuery ? `?${exportQuery}` : ""}`} className="text-sm text-accent hover:underline">

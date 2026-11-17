@@ -20,7 +20,7 @@ export function TriageCard({ job, remaining }: { job: JobRow; remaining: number 
           <input type="hidden" name="id" value={job.id} />
           <input type="hidden" name="action" value="status" />
           <input type="hidden" name="status" value="a_postuler" />
-          <input type="hidden" name="redirect" value={`/offres/${job.id}`} />
+          <input type="hidden" name="redirect" value={`/offres/${job.id}/candidature`} />
           <button className="btn btn-primary w-full">Préparer</button>
         </form>
         <form action={mutateJob}>

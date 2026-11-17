@@ -6,6 +6,10 @@ import { redirect } from "next/navigation";
 import { checkPassword, createSessionToken, SESSION_COOKIE, SESSION_DAYS, verifySessionToken } from "@/lib/auth";
 import { db } from "@/lib/db/client";
 import { applyMutation } from "@/lib/db/jobs";
+import { z } from "zod";
+import { followUp, markApplied, prepareApplication, savePackEdits, saveProfileYaml } from "@/lib/apply/service";
+import { VARIANTS } from "@/lib/apply/pack";
+
 
 async function requireSession() {
   const store = await cookies();
@@ -49,4 +53,70 @@ export async function logout() {
   const store = await cookies();
   store.delete(SESSION_COOKIE);
   redirect("/connexion");
+}
+
+// --- Phase 2 : candidatures ----------------------------------------------------
+
+
+const uuid = z.uuid();
+
+export async function preparePack(formData: FormData) {
+  await requireSession();
+  const id = uuid.parse(formData.get("id"));
+  const variant = z.enum(VARIANTS).optional().parse(formData.get("variant") || undefined);
+  const useAi = formData.get("useAi") === "on";
+  await prepareApplication(db(), id, { variant, useAi });
+  // Préparer une candidature fait passer l'offre « à postuler » (sans écraser un statut plus avancé).
+  await db()`update jobs set status = 'a_postuler', is_read = true, updated_at = now() where id = ${id} and status in ('nouvelle', 'a_etudier', 'plus_tard')`;
+  revalidatePath("/", "layout");
+  redirect(`/offres/${id}/candidature`);
+}
+
+export async function savePack(formData: FormData) {
+  await requireSession();
+  const id = uuid.parse(formData.get("id"));
+  const edits: Record<string, string> = {};
+  const validated: string[] = [];
+  for (const [key, value] of formData.entries()) {
+    if (typeof value !== "string") continue;
+    if (key.startsWith("s:")) edits[key.slice(2)] = value;
+    if (key.startsWith("ok:")) validated.push(key.slice(3));
+  }
+  const subject = formData.get("emailSubject");
+  await savePackEdits(db(), id, edits, validated, typeof subject === "string" ? subject : undefined);
+  revalidatePath(`/offres/${id}/candidature`);
+  redirect(`/offres/${id}/candidature?enregistre=1`);
+}
+
+export async function applied(formData: FormData) {
+  await requireSession();
+  const id = uuid.parse(formData.get("id"));
+  const channel = z.enum(["site", "email", "autre"]).parse(formData.get("channel"));
+  try {
+    await markApplied(db(), id, channel);
+  } catch (err) {
+    redirect(`/offres/${id}/candidature?erreur=${encodeURIComponent(err instanceof Error ? err.message : "Erreur")}`);
+  }
+  revalidatePath("/", "layout");
+  redirect(`/offres/${id}/candidature?envoye=1`);
+}
+
+export async function followUpAction(formData: FormData) {
+  await requireSession();
+  const id = uuid.parse(formData.get("id"));
+  const action = z.enum(["relance_faite", "clore"]).parse(formData.get("followup"));
+  await followUp(db(), id, action);
+  revalidatePath("/", "layout");
+  const back = String(formData.get("redirect") ?? "/candidatures");
+  redirect(back.startsWith("/") && !back.startsWith("//") ? back : "/candidatures");
+}
+
+export async function saveProfile(_prev: { errors?: string[]; ok?: boolean } | undefined, formData: FormData) {
+  await requireSession();
+  const yaml = String(formData.get("yaml") ?? "");
+  if (yaml.length > 200_000) return { errors: ["Profil trop long"] };
+  const r = await saveProfileYaml(db(), yaml);
+  if (!r.ok) return { errors: r.errors };
+  revalidatePath("/profil");
+  return { ok: true };
 }

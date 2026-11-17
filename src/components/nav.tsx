@@ -7,6 +7,8 @@ import { logout } from "@/app/actions";
 const LINKS = [
   { href: "/", label: "Aujourd'hui" },
   { href: "/offres", label: "Offres" },
+  { href: "/candidatures", label: "Candidatures" },
+  { href: "/profil", label: "Profil" },
   { href: "/diagnostic", label: "Synchro" },
 ];
 
@@ -17,7 +19,7 @@ export function Nav() {
   return (
     <>
       <header className="sticky top-0 z-10 border-b border-line bg-bg/90 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-3xl items-center gap-6 px-4">
+        <div className="mx-auto flex h-14 max-w-6xl items-center gap-6 px-4">
           <Link href="/" className="font-semibold">
             JobRadar
           </Link>
@@ -39,7 +41,7 @@ export function Nav() {
         </div>
       </header>
       <nav
-        className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-3 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] sm:hidden"
+        className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-5 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] sm:hidden"
         aria-label="Navigation mobile"
       >
         {LINKS.map((l) => (
@@ -47,7 +49,7 @@ export function Nav() {
             key={l.href}
             href={l.href}
             aria-current={active(l.href) ? "page" : undefined}
-            className={`py-3 text-center text-sm ${active(l.href) ? "font-semibold text-accent" : "text-text-2"}`}
+            className={`py-3 text-center text-xs ${active(l.href) ? "font-semibold text-accent" : "text-text-2"}`}
           >
             {l.label}
           </Link>

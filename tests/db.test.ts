@@ -3,6 +3,7 @@ import { after, before, describe, it } from "node:test";
 import postgres from "postgres";
 import { readFile, readdir } from "node:fs/promises";
 import { applyMutation, dashboard, getJob, listJobs } from "../src/lib/db/jobs";
+import { type AiCaller, board, dueFollowUps, followUp, getApplication, markApplied, prepareApplication, savePackEdits } from "../src/lib/apply/service";
 import { loadDedupeIndex, refreshAvailability, upsertJob } from "../src/lib/db/repo";
 import { findDuplicate } from "../src/lib/dedupe/dedupe";
 import { normalizeJob } from "../src/lib/normalize/job";
@@ -123,5 +124,84 @@ describe("base de données", { skip: !url && "TEST_DATABASE_URL non défini" }, 
     const d = await dashboard(sql);
     assert.ok(d.counts.new_today >= 1);
     assert.ok(d.top.length >= 1);
+  });
+});
+
+describe("candidatures (phase 2)", { skip: !url && "TEST_DATABASE_URL non défini" }, () => {
+  let sql: postgres.Sql;
+  let jobId: string;
+  before(async () => {
+    sql = postgres(url!, { onnotice: () => {}, max: 2 });
+    for (const f of (await readdir("supabase/migrations")).sort()) await sql.unsafe(await readFile(`supabase/migrations/${f}`, "utf8"));
+    const r = await save(sql, raw({ sourceJobId: "pack-1", url: "https://www.hellowork.com/fr-fr/emplois/pack-1.html", title: "Chargé de projet CRM", company: "Pack fictive" }));
+    jobId = r.jobId;
+  });
+  after(async () => sql?.end());
+
+  it("sans clé IA : version sans IA, signalée, et conforme", async () => {
+    const { application, validation } = await prepareApplication(sql, jobId, { env: {} });
+    assert.equal(application.generated_by, "modele");
+    assert.match(application.generation_note ?? "", /IA non configurée/);
+    assert.equal(validation.ok, true, JSON.stringify(validation.issues));
+  });
+
+  it("avec IA (simulée) : réponse utilisée, coût enregistré", async () => {
+    const fakeAi: AiCaller = async ({ user }) => {
+      assert.ok(user.includes("<annonce>"));
+      return {
+        stopReason: "end_turn",
+        usage: { input_tokens: 5000, output_tokens: 1500 },
+        parsed: {
+          variant: "crm",
+          cv_title: "Chargé de projet CRM",
+          summary: [{ text: "Consultant en marketing digital en freelance depuis 2023.", sources: ["exp.freelance"] }],
+          skills: ["CRM", "HubSpot"],
+          experiences: [{ fact_id: "exp.freelance", bullets: [{ text: "Web app pour une wedding planner.", sources: ["real.wedding-app"] }] }],
+          letter_paragraphs: [
+            [{ text: "Votre annonce porte sur le CRM HubSpot.", sources: ["annonce"] }],
+            [{ text: "Chez GR.APP&CO, j'ai constitué une base de 10 000 contacts professionnels.", sources: ["real.base-10k"] }],
+          ],
+          email_subject: "Candidature : Chargé de projet CRM",
+          email_body: [{ text: "Bonjour,", sources: [] }],
+          why: { text: "Je construis déjà des outils métiers.", sources: ["real.outil-restructuring"] },
+        },
+      };
+    };
+    const { application } = await prepareApplication(sql, jobId, { ai: fakeAi, env: { ANTHROPIC_API_KEY: "test" } });
+    assert.equal(application.generated_by, "ia");
+    const [{ n }] = await sql<{ n: number }[]>`select count(*)::int as n from ai_usage where job_id = ${jobId}`;
+    assert.equal(n, 1);
+  });
+
+  it("budget atteint : pas d'appel IA", async () => {
+    let called = false;
+    const r = await prepareApplication(sql, jobId, { ai: async () => { called = true; throw new Error("ne doit pas être appelé"); }, env: { ANTHROPIC_API_KEY: "x", AI_MONTHLY_BUDGET_EUR: "0" } });
+    assert.equal(called, false);
+    assert.match(r.application.generation_note ?? "", /Budget/);
+  });
+
+  it("une phrase inventée bloque « J'ai postulé » ; corrigée, l'envoi passe et fige une copie", async () => {
+    await prepareApplication(sql, jobId, { env: {} });
+    let v = await savePackEdits(sql, jobId, { "letter.paragraphs.3.0": "J'ai géré un budget de 2 millions d'euros." }, []);
+    assert.equal(v.ok, false);
+    await assert.rejects(markApplied(sql, jobId, "site"), /anti-invention/);
+    v = await savePackEdits(sql, jobId, { "letter.paragraphs.3.0": "Je serais heureux d'échanger avec vous." }, []);
+    assert.equal(v.ok, true, JSON.stringify(v.issues));
+    await markApplied(sql, jobId, "site", new Date("2026-11-17T09:00:00Z"));
+    const app = await getApplication(sql, jobId);
+    assert.ok(app?.sent_snapshot);
+    assert.equal(new Date(app!.next_action_at!).toISOString(), "2026-11-24T09:00:00.000Z");
+    assert.equal((await getJob(sql, jobId))!.status, "candidature_envoyee");
+  });
+
+  it("régénérer ne touche pas à la copie envoyée ; relances dues et suivi", async () => {
+    const before = (await getApplication(sql, jobId))!.sent_snapshot;
+    await prepareApplication(sql, jobId, { env: {} });
+    assert.deepEqual((await getApplication(sql, jobId))!.sent_snapshot, before);
+    assert.equal((await dueFollowUps(sql, new Date("2026-11-20T00:00:00Z"))).length, 0);
+    assert.equal((await dueFollowUps(sql, new Date("2026-11-25T00:00:00Z"))).length, 1);
+    await followUp(sql, jobId, "relance_faite", new Date("2026-11-25T00:00:00Z"));
+    assert.equal((await getJob(sql, jobId))!.status, "relance_prevue");
+    assert.ok((await board(sql)).some((b) => b.job_id === jobId));
   });
 });

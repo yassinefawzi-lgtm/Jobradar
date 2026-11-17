@@ -7,19 +7,33 @@ Application personnelle de recherche d'emploi : collecte quotidienne d'offres r�
 - Sources et autorisations : [docs/SOURCES.md](docs/SOURCES.md)
 - Profil (source de vérité pour CV et lettres, phase 2) : [profile/facts.yaml](profile/facts.yaml)
 
-## État : phase 1 terminée
+## État : phases 1 et 2 terminées
 
 | Fonction | État |
 |---|---|
 | Collecte HelloWork (résultats + détail des offres) | Fonctionne, testée sur des offres réelles |
 | Connecteurs France Travail et Adzuna | Code prêt, testé sur données simulées, en attente de clés |
-| Normalisation (contrat, télétravail, salaire, lieu, distance) | Fonctionne, testée |
-| Déduplication (URL, empreinte, similarité) | Fonctionne, testée |
-| Score sur 100 explicable + recommandation | Fonctionne, testé |
-| Écrans Aujourd'hui, Offres (filtres, tri, CSV), Détail, Synchro | Fonctionnent, testés dans Chromium |
-| Statuts, favoris, notes, « ignorer » avec raison | Persistants, testés |
-| Synchro quotidienne automatique (7 h 30) | Phase 4 — pour l'instant `pnpm sync` |
-| Pack candidature (CV + lettre), Spontanées, Stats | Phases 2, 3 et 5 |
+| Normalisation, déduplication, score sur 100 expliqué | Fonctionnent, testés |
+| Écrans Aujourd'hui, Offres, Détail, Synchro | Fonctionnent, testés dans Chromium |
+| **Pack candidature** : CV ciblé (4 variantes), lettre, e-mail, réponses types, couverture des exigences | Fonctionne sans IA, testé sur 3 offres réelles |
+| **Contrôle anti-invention** : export et « J'ai postulé » bloqués tant qu'une phrase n'est pas sourcée | Fonctionne, testé |
+| **PDF** CV (1 page A4, compatible ATS) et lettre | Fonctionne, testé |
+| « J'ai postulé » : copie figée + relance à J+7, tableau des candidatures, relances sur l'accueil | Fonctionne, testé |
+| Profil modifiable dans l'application (validé avant enregistrement) | Fonctionne, testé |
+| Rédaction par l'IA (Claude) | Code prêt, testé sur réponses simulées ; **pas encore testé en réel** (clé à fournir) |
+| Synchro quotidienne automatique, alertes e-mail, autres sources | Phase 4 |
+| Spontanées, Stats | Phases 3 et 5 |
+
+### Pack candidature : comment ça marche
+
+1. Depuis une offre : **Préparer ma candidature**. Le pack est généré à partir de `profile/facts.yaml` uniquement.
+2. Chaque phrase affiche ses sources (faits du profil, « annonce », « tes préférences »). Le contrôle bloque :
+   phrase sans source, chiffre ou outil absent des faits cités, formule interdite, fait non validé.
+3. Tu corriges le texte, ou tu coches « Je confirme que cette phrase est exacte » (tracé).
+4. **Télécharger le CV / la lettre** (PDF), **Copier l'e-mail**, **Ouvrir l'annonce**, puis **J'ai postulé** :
+   copie figée de ce qui a été envoyé, statut « Candidature envoyée », relance programmée à J+7.
+5. Avec `ANTHROPIC_API_KEY`, l'IA (Claude Opus 5.5) réécrit le brouillon pour l'offre ; le même contrôle s'applique.
+   Coût estimé : quelques centimes par pack ; plafond mensuel `AI_MONTHLY_BUDGET_EUR` (10 € par défaut), au-delà rédaction sans IA.
 
 ## Démarrer en local
 
@@ -50,7 +64,7 @@ pnpm dev                          # http://localhost:3200
 
 1. **Supabase** (supabase.com → New project, région Europe). Dans *Project Settings → Database → Connection string*, copier l'URL du **Transaction pooler** (port 6543) : c'est `DATABASE_URL`.
 2. Depuis ton ordinateur ou Claude Code : `DATABASE_URL=… pnpm db:migrate`, puis `DATABASE_URL=… pnpm sync`.
-3. **Vercel** (vercel.com → Add New Project → importer ce dépôt). Variables d'environnement : `DATABASE_URL`, `APP_PASSWORD`, `SESSION_SECRET`. Déployer.
+3. **Vercel** (vercel.com → Add New Project → importer ce dépôt). Variables d'environnement : `DATABASE_URL`, `APP_PASSWORD`, `SESSION_SECRET`, et pour l'IA `ANTHROPIC_API_KEY` (console.anthropic.com → API Keys). Déployer.
 4. Ouvrir l'URL Vercel sur l'iPhone → *Partager → Sur l'écran d'accueil* pour l'avoir comme une app.
 
 La collecte ne tourne jamais dans Vercel (durées d'exécution limitées) : elle passe par la ligne de commande, puis par GitHub Actions en phase 4.

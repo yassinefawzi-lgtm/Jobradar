@@ -25,7 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="fr">
       <body className="min-h-dvh">
         <Nav />
-        <div className="mx-auto w-full max-w-3xl px-4 pb-24 pt-4 sm:pb-10">{children}</div>
+        <div className="mx-auto w-full max-w-6xl px-4 pb-24 pt-4 sm:pb-10">{children}</div>
       </body>
     </html>
   );

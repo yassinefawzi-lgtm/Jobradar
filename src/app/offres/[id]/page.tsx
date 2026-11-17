@@ -36,7 +36,7 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
   const here = `/offres/${job.id}`;
 
   return (
-    <main className="space-y-5">
+    <main className="mx-auto max-w-3xl space-y-5">
       <Link href="/offres" className="text-sm text-accent hover:underline">
         ← Offres
       </Link>
@@ -81,10 +81,13 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
 
       <div className="flex flex-wrap gap-2">
         {main && (
-          <a href={main.url} target="_blank" rel="noopener noreferrer" className="btn btn-primary">
+          <a href={main.url} target="_blank" rel="noopener noreferrer" className="btn">
             Ouvrir l&apos;annonce ({SOURCE_LABELS[main.source] ?? main.source}) ↗
           </a>
         )}
+        <Link href={`/offres/${job.id}/candidature`} className="btn btn-primary">
+          Préparer ma candidature
+        </Link>
         <ActionButton id={job.id} action="favorite" value={String(!job.is_favorite)} label={job.is_favorite ? "★ Retirer des favoris" : "☆ Favori"} back={here} />
         <ActionButton id={job.id} action="read" value="false" label="Marquer non lue" back="/offres" />
       </div>

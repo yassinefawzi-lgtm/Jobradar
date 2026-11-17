@@ -2,7 +2,9 @@ import type { NextConfig } from "next";
 
 const config: NextConfig = {
   poweredByHeader: false,
-  serverExternalPackages: ["postgres"],
+  serverExternalPackages: ["postgres", "@react-pdf/renderer"],
+  // profile/facts.yaml est lu à l'exécution : il doit être inclus dans le déploiement.
+  outputFileTracingIncludes: { "/**": ["./profile/**"] },
   async headers() {
     return [
       {
