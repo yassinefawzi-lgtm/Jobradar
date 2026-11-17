@@ -74,10 +74,7 @@ competences:
   - { id: comp.seo, nom: "SEO et contenu", outils: [rédaction SEO, copywriting, landing pages, WordPress, Webflow], preuves: [real.seo-7], statut: valide }
   - { id: comp.automatisation, nom: "Automatisation", outils: [Make, Zapier, Google Sheets, API Pappers, IA générative, web apps sur mesure], preuves: [real.outil-restructuring, real.wedding-app], statut: valide }
   - { id: comp.analyse-besoins, nom: "Analyse de besoins et gestion de projet", preuves: [real.enedis, real.alternants, real.outil-restructuring], statut: valide }
-  # Confirmées par Yassine le 2026-11-17, sans réalisation documentée pour l'instant.
-  # usage: liste_seulement -> peuvent figurer dans la liste de compétences et servir au scoring,
-  # mais ne doivent pas être attribuées à une expérience précise ni présentées comme une réalisation.
-  # Ajouter une réalisation (outil, contexte, résultat) pour lever cette limite.
-  - { id: comp.n8n, nom: n8n, preuves: [], source: declaration_yassine_2026-11-17, usage: liste_seulement, statut: valide }
-  - { id: comp.crm, nom: CRM, preuves: [], source: declaration_yassine_2026-11-17, usage: liste_seulement, statut: valide }
-  - { id: comp.hubspot, nom: HubSpot, preuves: [], source: declaration_yassine_2026-11-17, usage: liste_seulement, statut: valide }
+  # Confirmées par Yassine le 2026-11-17 (pas de réalisation documentée pour l'instant ; à compléter).
+  - { id: comp.n8n, nom: n8n, preuves: [], source: declaration_yassine_2026-11-17, statut: valide }
+  - { id: comp.crm, nom: CRM, preuves: [], source: declaration_yassine_2026-11-17, statut: valide }
+  - { id: comp.hubspot, nom: HubSpot, preuves: [], source: declaration_yassine_2026-11-17, statut: valide }

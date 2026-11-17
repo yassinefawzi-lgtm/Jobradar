@@ -26,9 +26,10 @@ La veille n'est pas une fin en soi : elle alimente la candidature.
 - Ne modifier aucun autre dépôt ou projet.
 
 ## Méthode
-- Une phase à la fois (docs/SPEC.md §12). Une phase est finie quand ses critères de fin sont vérifiés.
+- Une phase à la fois (docs/SPEC.md §12). Avant de terminer : `pnpm lint && pnpm typecheck && pnpm test && pnpm build`. Une phase est finie quand ses critères de fin sont vérifiés.
 - Autonomie technique. Ne me demander que les clés, accès et décisions qui me reviennent, en expliquant
   exactement quoi fournir, où le trouver et pourquoi.
-- Simplicité et coût minimal : un seul utilisateur, connexion par lien magique limitée à mon adresse.
+- Simplicité et coût minimal : un seul utilisateur, connexion par mot de passe unique (APP_PASSWORD).
+- E-mails d'alerte utilisés par le radar : mis à la corbeille après une ingestion réussie (docs/SPEC.md §7).
 - Budget IA mensuel plafonné (paramètre, défaut 10 €) avec compteur visible ; au-delà, l'app fonctionne sans IA.
 - Ne pas me demander de modifier à la main des fichiers que tu peux modifier toi-même.

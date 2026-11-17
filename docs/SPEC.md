@@ -81,8 +81,6 @@ Actions persistantes : lue, favori, ignorer avec raison, statut, notes, signaler
 - Pour une offre : choix automatique de la variante (modifiable), puis adaptation du titre, de
   l'accroche (3 lignes), de l'ordre des compétences et de la sélection de 3 à 5 points par expérience.
   Les mots-clés de l'annonce ne sont repris que s'ils correspondent à un fait validé.
-- Une compétence marquée `usage: liste_seulement` peut apparaître dans la liste de compétences et
-  compter dans le scoring, mais n'est jamais attribuée à une expérience ni présentée comme une réalisation.
 - La prospection B2B n'est mise en avant que pour les postes où elle est pertinente ; pour les
   familles B, C, D, E, mettre en avant outils métiers, automatisation, analyse de besoins (Fiber
   Academy/ENEDIS) et gestion de projet.
@@ -158,6 +156,8 @@ Chaque source est un connecteur indépendant avec diagnostic (dernier succès, v
 | 2 | Mes e-mails d'alerte (Gmail) | IMAP + mot de passe d'application, ou Gmail API. Éviter OAuth Gmail en mode « test » (jetons à durée limitée). Alertes actuelles : Jobijoba, Talent.com, HelloWork. Extraire titre, entreprise, lieu, contrat, salaire, lien ; récupérer la page complète si la source est autorisée. |
 | 3 | ATS publics des entreprises suivies | Endpoints publics |
 
+**E-mails d'alerte : suppression après usage.** Une fois un e-mail d'alerte lu et ses offres enregistrées avec succès, il est placé dans la corbeille Gmail (Gmail le supprime définitivement après 30 jours). En cas d'échec d'analyse, l'e-mail est conservé et signalé dans le diagnostic. Seuls les e-mails des expéditeurs d'alertes configurés sont concernés.
+
 Exigences de collecte : groupes de mots-clés et variantes, pagination, timeouts, retries avec backoff,
 quotas ; source, URL originale et identifiant conservés ; dates réelles des sources ; date de dernière
 consultation ; disponibilité vérifiée si possible, sinon « disponibilité inconnue ».
@@ -209,6 +209,7 @@ commentaires, prochaine action et date.
 - Stack suggérée : Next.js + TypeScript + Tailwind, Supabase (Postgres, auth, stockage des PDF),
   Vercel, GitHub Actions. Alternative acceptée si elle réduit vraiment coût ou maintenance, justifiée.
   Pas de traitement long dans des fonctions serverless.
+- Authentification : mot de passe unique (`APP_PASSWORD`) et cookie de session signé (`SESSION_SECRET`), choisi à la place du lien magique car il ne dépend d'aucun service d'envoi d'e-mails. Base : PostgreSQL (Supabase en production), accédée uniquement côté serveur ; RLS activée sans politique, donc l'API publique Supabase n'expose rien.
 - Sécurité : secrets côté serveur uniquement, variables d'environnement, RLS sur toutes les tables,
   validation de toutes les entrées (zod), routes d'administration protégées, migrations SQL versionnées.
 - Modules séparés : sources, normalisation, déduplication, enrichissement, scoring, génération,
