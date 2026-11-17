@@ -1,0 +1,80 @@
+identite:
+  nom: Yassine Fawzi
+  titre_cv: Chargé de marketing digital
+  localisation: Rouen (installation prochaine)
+  mobilite: Permis B, véhiculé
+  email_candidature: contact@yassinefawzi.fr
+  site: yassinefawzi.fr
+  linkedin: linkedin.com/in/yassine-fawzi
+  langues:
+    - { langue: anglais, niveau: très bon niveau, statut: valide }
+
+formation:
+  - id: form.rocket
+    intitule: Responsable marketing et commercial, acquisition numérique
+    ecole: Rocket School, Lyon
+    periode: 2022-2024
+    detail: Parcours Bachelor Marketing digital & Growth Hacking, bootcamp puis alternance
+    niveau: Bac+3          # a_confirmer : niveau RNCP exact du titre
+    statut: valide
+  - id: form.dut
+    intitule: DUT Mesures physiques
+    ecole: Campus 2, Caen
+    periode: 2013-2015
+    statut: valide
+
+experiences:
+  - id: exp.freelance
+    poste: Consultant marketing digital (freelance)
+    clients: entrepreneurs, avocats, restaurants, petites entreprises
+    periode: 2023-aujourd'hui
+    realisations:
+      - id: real.gads-avocat
+        texte: Google Ads pour un avocat pénaliste — lancement de campagnes locales (budget 400 à 500 €/mois), exclusion des recherches hors spécialité et hors zone ; les campagnes tournent aujourd'hui seules.
+        statut: valide
+      - id: real.meta-ads
+        texte: Meta Ads (Instagram, Facebook) pour des restaurants et une école de réflexologie — configuration, diffusion, optimisation ; 4 inscriptions obtenues pour l'école.
+        statut: valide
+      - id: real.outil-restructuring
+        texte: Outil métier pour un avocat en restructuring — interface de saisie, API Pappers et modèles de documents pour générer les offres de reprise ; une offre prenait une dizaine d'heures, environ deux fois moins aujourd'hui ; toujours utilisé.
+        statut: valide
+      - id: real.wedding-app
+        texte: Web app pour une wedding planner — informations centralisées, suivi des tâches, relances des invités et prestataires.
+        statut: valide
+  - id: exp.grapp
+    poste: Growth Hacker en alternance
+    entreprise: GR.APP&CO, Saint-Étienne
+    periode: 2022-2023
+    realisations:
+      - { id: real.base-10k, texte: "Constitution et enrichissement par scraping d'une base de 10 000 contacts professionnels.", statut: valide }
+      - { id: real.grapp-ads, texte: "Mise en place et optimisation de campagnes Google Ads et Meta Ads.", statut: valide }
+      - { id: real.prospection-cse, texte: "Prospection LinkedIn et e-mail auprès des comités sociaux et économiques (CSE).", statut: valide }
+      - { id: real.seo-7, texte: "Rédaction et mise en page de 7 articles SEO.", statut: valide }
+  - id: exp.fiber
+    poste: Chargé d'études
+    entreprise: Fiber Academy, Colombelles
+    periode: 2018-2020
+    realisations:
+      - { id: real.enedis, texte: "Analyse des besoins d'ENEDIS, études de faisabilité présentées aux décideurs.", statut: valide }
+      - { id: real.alternants, texte: "Gestion de projet, recrutement et formation d'alternants.", statut: valide }
+  - id: exp.interim
+    poste: Missions en intérim et en périscolaire
+    periode: 2020-2022
+    statut: valide
+
+projets_personnels:
+  - { id: proj.veille-emploi, texte: "Outil personnel de veille d'offres d'emploi (recherches, fusion des doublons, classement selon mes critères avec justification) — test réel autour de Rouen en octobre 2026 : 6 offres retenues sur 49.", statut: valide }
+  - { id: proj.loyer, texte: "« Rends-moi mon loyer » : simulateur en ligne de l'encadrement des loyers (données publiques, Géoplateforme IGN, Next.js), avec courrier pré-rempli.", statut: valide }
+  - { id: proj.site, texte: "yassinefawzi.fr : site personnel en Next.js hébergé sur Cloudflare ; contenus et structure par moi, code écrit avec l'aide d'une IA.", statut: valide }
+
+competences:
+  - { id: comp.ads, nom: "Acquisition payante", outils: [Google Ads, Meta Ads], preuves: [real.gads-avocat, real.meta-ads, real.grapp-ads], statut: valide }
+  - { id: comp.prospection, nom: "Prospection B2B", outils: [LinkedIn Sales Navigator, Lemlist, Waalaxy, LaGrowthMachine, cold emailing], preuves: [real.prospection-cse], statut: valide }
+  - { id: comp.data, nom: "Scraping et enrichissement", outils: [PhantomBuster, Octoparse, Lusha, Dropcontact], preuves: [real.base-10k], statut: valide }
+  - { id: comp.seo, nom: "SEO et contenu", outils: [rédaction SEO, copywriting, landing pages, WordPress, Webflow], preuves: [real.seo-7], statut: valide }
+  - { id: comp.automatisation, nom: "Automatisation", outils: [Make, Zapier, Google Sheets, API Pappers, IA générative, web apps sur mesure], preuves: [real.outil-restructuring, real.wedding-app], statut: valide }
+  - { id: comp.analyse-besoins, nom: "Analyse de besoins et gestion de projet", preuves: [real.enedis, real.alternants, real.outil-restructuring], statut: valide }
+  # Présents dans ton prompt mais absents du CV : à confirmer avec une preuve avant usage
+  - { id: comp.n8n, nom: "n8n", preuves: [], statut: a_confirmer }
+  - { id: comp.crm, nom: "CRM (lequel ? HubSpot, autre ?)", preuves: [], statut: a_confirmer }
+  - { id: comp.hubspot, nom: "HubSpot", preuves: [], statut: a_confirmer }
