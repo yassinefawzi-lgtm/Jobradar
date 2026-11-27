@@ -62,7 +62,12 @@ pnpm dev                          # http://localhost:3200
    - *Variables* (facultatives) : `APP_URL` (adresse Vercel, pour les liens du résumé), `NOTIFY_TO`, `NOTIFY_MIN_SCORE` (85 par défaut).
 3. GitHub → Actions → **Synchro** → *Run workflow* pour un premier passage (rattrapage de 30 jours sur une base vide).
 4. Ensuite, tout est automatique chaque matin. En cas d'échec, GitHub t'envoie un e-mail, et JobRadar aussi si Gmail est configuré.
-5. Facultatif, bouton « Lancer une synchro » dans l'appli : dans Vercel, `GITHUB_DISPATCH_TOKEN` (jeton GitHub à grain fin,
+5. **Heure fiable (recommandé)** : les tâches planifiées de GitHub arrivent souvent avec plusieurs heures de retard
+   (constaté : vers 17-19 h au lieu de 7 h 30). Le cron de Vercel (`vercel.json`, 6 h UTC soit 7 h-8 h à Paris en hiver)
+   déclenche alors la synchro dans l'heure prévue. Dans Vercel → Settings → Environment Variables, ajoute :
+   `CRON_SECRET` (une longue valeur aléatoire), `GITHUB_DISPATCH_TOKEN` et `GITHUB_REPOSITORY` (voir point 6), puis redéploie.
+   Le déclenchement GitHub de l'après-midi reste en secours ; un second passage le même jour ne fait qu'une collecte incrémentale.
+6. Bouton « Lancer une synchro » dans l'appli (et cron ci-dessus) : dans Vercel, `GITHUB_DISPATCH_TOKEN` (jeton GitHub à grain fin,
    ce dépôt seulement, permission *Actions : lecture et écriture*) et `GITHUB_REPOSITORY` (`yassinefawzi-lgtm/jobradar`).
 
 Les e-mails d'alerte ne sont mis à la corbeille qu'après l'enregistrement réussi de toutes leurs offres ;
