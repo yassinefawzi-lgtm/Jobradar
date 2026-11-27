@@ -19,7 +19,8 @@ export function emailConnector(env: Env = process.env, open: (env: Env) => Promi
       const warnings: string[] = [];
       const jobsByUid = new Map<number, string[]>();
       try {
-        const mails = await box.fetchAlerts(Math.max(2, Math.min(ctx.maxAgeDays, 14)));
+        // 30 jours : un e-mail non traité (lecteur absent, panne) est repris au passage suivant.
+        const mails = await box.fetchAlerts(30);
         for (const mail of mails) {
           const parsed = parseAlertEmail(mail);
           if (!parsed) continue;
