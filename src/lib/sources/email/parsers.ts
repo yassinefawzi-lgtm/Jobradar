@@ -28,7 +28,8 @@ export const ALERT_SENDERS = [
   "welcometothejungle.com",
   "francetravail.fr",
   "apec.fr",
-  "emails.hellowork.com",
+  "notification@emails.hellowork.com",
+  "emploi@emails.hellowork.com",
 ];
 
 export function isAlertSender(from: string): boolean {
@@ -110,8 +111,49 @@ export function unwrapTracking(url: string): string {
 
 // --- Indeed ------------------------------------------------------------------------
 
+/** Alerte quotidienne Indeed (format actuel) : titre en lien "strong-text-link", puis paragraphes entreprise, lieu, salaire, ancienneté. */
+export function parseIndeedDaily(mail: AlertEmail): RawJob[] {
+  const html = mail.html ?? "";
+  const jobs: RawJob[] = [];
+  const parts = html.split(/<a\b(?=[^>]*class="strong-text-link")/).slice(1);
+  for (const part of parts) {
+    const a = part.match(/^[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/);
+    if (!a) continue;
+    const title = strip(a[2]);
+    // Le bloc d'une offre s'arrête au titre suivant.
+    const block = part.slice(a[0].length).split(/<h2\b/)[0];
+    const paras = [...block.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/g)].map((m) => strip(m[1])).filter(Boolean);
+    if (!title || paras.length < 2) continue; // liens hors offre (« voir plus », etc.)
+    const href = decodeEntities(a[1]);
+    const jk = href.match(/[?&]jk=([0-9a-f]{16})/)?.[1];
+    const isPlace = (s: string) => /\((\d{2,3}|2A|2B)\)\s*$/.test(s) || /^(télétravail|france)\b/i.test(s);
+    const company = paras[0];
+    const placeRaw = paras.find((s, i) => i > 0 && isPlace(s)) ?? paras[1];
+    const salary = paras.find((s) => /€/.test(s)) ?? null;
+    const age = paras.find((s) => /il y a|instant|aujourd/i.test(s)) ?? null;
+    // Extrait : seulement avant l'ancienneté (après viennent le pied de page et les mentions légales du mail).
+    const beforeAge = age ? paras.slice(0, paras.indexOf(age)) : paras;
+    const snippet =
+      beforeAge.find((s) => s !== company && s !== placeRaw && s !== salary && s.length > 60 && !/ne partagez pas|désinscri|confidentialit/i.test(s)) ?? null;
+    const place = splitPlace(placeRaw);
+    const url = jk ? `https://fr.indeed.com/viewjob?jk=${jk}` : href;
+    const job = baseJob("indeed", jk ?? `mail-${hash(`${title}|${company}|${place.city}`)}`, url, title);
+    job.company = company;
+    job.city = place.city;
+    job.postalCode = place.dept;
+    job.remoteRaw = /télétravail/i.test(placeRaw) ? placeRaw : null;
+    job.salaryRaw = salary;
+    job.description = snippet;
+    job.publishedAt = age ? relativeToDate(age, mail.date) : null;
+    job.extra = { fromEmail: true, departement: place.dept, sponsored: !jk };
+    jobs.push(job);
+  }
+  return jobs;
+}
+
 export function parseIndeed(mail: AlertEmail): RawJob[] {
   const html = mail.html ?? "";
+  if (/class="strong-text-link"/.test(html)) return parseIndeedDaily(mail);
   const jobs: RawJob[] = [];
   const cards = html.split(/<td[^>]*class="r-l"[^>]*>/).slice(1);
   for (const card of cards) {

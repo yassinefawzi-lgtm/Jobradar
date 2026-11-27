@@ -46,6 +46,29 @@ describe("e-mails d'alerte : Indeed (e-mail réel anonymisé)", () => {
   });
 });
 
+describe("e-mails d'alerte : Indeed, alerte quotidienne (e-mail réel anonymisé du 25/11/2026)", () => {
+  const daily = readFileSync(new URL("./fixtures/indeed-alert-daily.html", import.meta.url), "utf8");
+  const jobs = parseIndeed(mail({ html: daily, date: new Date("2026-11-25T15:34:37Z") }));
+  it("lit les 18 offres", () => {
+    assert.equal(jobs.length, 18);
+  });
+  it("utilise l'identifiant Indeed (jk) et un lien propre quand il existe", () => {
+    const matmut = jobs.find((j) => j.company === "Matmut")!;
+    assert.equal(matmut.sourceJobId, "8d6c1c67501023ce");
+    assert.equal(matmut.url, "https://fr.indeed.com/viewjob?jk=8d6c1c67501023ce");
+    assert.equal(matmut.city, "Rouen");
+    assert.equal(matmut.postalCode, "76");
+    assert.equal(matmut.salaryRaw, "À partir de 27 500 € par an");
+  });
+  it("offre sponsorisée sans identifiant : identifiant stable calculé", () => {
+    const orisha = jobs.find((j) => j.company === "Orisha")!;
+    assert.match(orisha.sourceJobId, /^mail-[0-9a-f]{16}$/);
+  });
+  it("aucun extrait ne reprend le pied de page du mail", () => {
+    assert.ok(jobs.every((j) => !/ne partagez pas/i.test(j.description ?? "")));
+  });
+});
+
 describe("e-mails d'alerte : utilitaires", () => {
   it("dates relatives", () => {
     assert.equal(relativeToDate("Publié à l'instant", REF), REF.toISOString());
